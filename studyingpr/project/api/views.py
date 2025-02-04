@@ -5,8 +5,17 @@ from rest_framework.views import APIView
 from .models import User, Warehouse, Product, Supply, Order
 from .serializers import UserSerializer, WarehouseSerializer, ProductSerializer, SupplySerializer, OrderSerializer
 
-# Регистрация пользователя
 class RegisterUserView(APIView):
+    """
+    API для регистрации нового пользователя.
+
+    Метод:
+        post: Создает нового пользователя на основе переданных данных.
+
+    Ответы:
+        201 Created: Успешная регистрация.
+        400 Bad Request: Ошибка валидации данных.
+    """
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -14,11 +23,20 @@ class RegisterUserView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Аутентификация пользователя (используем стандартный механизм DRF)
-# Включить в urls.py маршруты для аутентификации с использованием token или session.
-
-# Создание склада
 class WarehouseCreateView(APIView):
+    """
+    API для создания склада.
+
+    Доступ:
+        Только аутентифицированные пользователи.
+
+    Метод:
+        post: Создает новый склад.
+
+    Ответы:
+        201 Created: Склад успешно создан.
+        400 Bad Request: Ошибка валидации данных.
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -28,44 +46,24 @@ class WarehouseCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Создание товара
 class ProductCreateView(APIView):
+    """
+    API для создания товара.
+
+    Доступ:
+        Только аутентифицированные пользователи.
+
+    Метод:
+        post: Создает новый товар.
+
+    Ответы:
+        201 Created: Товар успешно создан.
+        400 Bad Request: Ошибка валидации данных.
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():
             product = serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# Поставить товар на склад (только для поставщиков)
-class SupplyProductView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        if request.user.role != 'supplier':
-            return Response({"detail": "Только поставщик может поставлять товар"}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = SupplySerializer(data=request.data)
-        if serializer.is_valid():
-            supply = serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# Заказать товар с склада (только для потребителей)
-class OrderProductView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        if request.user.role != 'consumer':
-            return Response({"detail": "Только потребитель может забирать товар"}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                order = serializer.save(consumer=request.user)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            except ValueError as e:
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer
